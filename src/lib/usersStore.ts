@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { persist, createJSONStorage } from "zustand/middleware";
 
 export interface Company {
   name: string;
@@ -21,26 +22,36 @@ interface UsersState {
   deleteUser: (id: number) => void;
 }
 
-export const useUsersStore = create<UsersState>((set) => ({
-  users: [],
-  setUsers: (list) => set({ users: list }),
-  addUserAtTop: (user) =>
-    set((state) => {
-      const newId = user.id ?? Date.now();
-      const newUser: User = {
-        id: newId,
-        name: user.name,
-        email: user.email,
-        company: user.company ?? { name: "—" },
-        createdAt: Date.now(),
-        isLocal: true,
-      };
-      return { users: [newUser, ...state.users] };
+export const useUsersStore = create<UsersState>()(
+  persist(
+    (set) => ({
+      users: [],
+      setUsers: (list) => set({ users: list }),
+      addUserAtTop: (user) =>
+        set((state) => {
+          const newId = user.id ?? Date.now();
+          const newUser: User = {
+            id: newId,
+            name: user.name,
+            email: user.email,
+            company: user.company ?? { name: "—" },
+            createdAt: Date.now(),
+            isLocal: true,
+          };
+          return { users: [newUser, ...state.users] };
+        }),
+      updateUser: (id, patch) =>
+        set((state) => ({
+          users: state.users.map((user) => (user.id === id ? { ...user, ...patch } : user)),
+        })),
+      deleteUser: (id) =>
+        set((state) => ({ users: state.users.filter((user) => user.id !== id) })),
     }),
-  updateUser: (id, patch) =>
-    set((state) => ({
-      users: state.users.map((user) => (user.id === id ? { ...user, ...patch } : user)),
-    })),
-  deleteUser: (id) =>
-    set((state) => ({ users: state.users.filter((user) => user.id !== id) })),
-}));
+    {
+      name: "users-store",
+      version: 1,
+      partialize: (state) => ({ users: state.users }),
+      storage: createJSONStorage(() => localStorage),
+    }
+  )
+);
