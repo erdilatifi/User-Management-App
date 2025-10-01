@@ -52,7 +52,7 @@ const CardElement = ({ user }: CardElementProps) => {
   };
 
   return (
-    <>
+    <div>
       <Card className="p-4 hover:shadow-lg transition-shadow rounded-xl border border-gray-200">
         <CardTitle>
           <h2 className="text-lg font-semibold text-gray-900 truncate">{user.name}</h2>
@@ -102,7 +102,7 @@ const CardElement = ({ user }: CardElementProps) => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </>
+    </div>
   );
 };
 

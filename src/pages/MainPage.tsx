@@ -19,7 +19,7 @@ type SortOrder = "asc" | "desc";
 
 const MainPage = () => {
   const { users, setUsers, addUserAtTop } = useUsersStore();
-  const [loading, setLoading] = useState<boolean>(false);
+  const [loading, setLoading] = useState(false);
 
   const [searchText, setSearchText] = useState("");
   const [sortBy, setSortBy] = useState<SortBy>("name");
@@ -28,18 +28,16 @@ const MainPage = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
 
-  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [currentPage, setCurrentPage] = useState(1);
   const usersPerPage = 6;
- 
+
   const loadUsersFromApi = async () => {
     setLoading(true);
     try {
       const res = await fetch("https://jsonplaceholder.typicode.com/users");
-      if (!res.ok) throw new Error("Error fetching!");
-      const data = (await res.json()) as Array<{
-        id: number; name: string; email: string; company?: { name?: string };
-      }>;
-      const mapped: User[] = data.map((u) => ({
+      if (!res.ok) throw new Error("Failed to fetch!");
+      const data = await res.json();
+      const mapped: User[] = data.map((u: any) => ({
         id: u.id,
         name: u.name,
         email: u.email,
@@ -64,16 +62,18 @@ const MainPage = () => {
       if (useUsersStore.getState().users.length === 0) void loadUsersFromApi();
     }
   }, []);
-  
+
   const query = searchText.trim().toLowerCase();
-  let list = users;
+  let filteredUsers = users;
   if (query) {
-    list = users.filter((u) =>
-      u.name.toLowerCase().includes(query) || u.email.toLowerCase().includes(query)
+    filteredUsers = users.filter(
+      (u) =>
+        u.name.toLowerCase().includes(query) ||
+        u.email.toLowerCase().includes(query)
     );
   }
 
-  const filteredAndSortedUsers = [...list].sort((a, b) => {
+  const sortedUsers = [...filteredUsers].sort((a, b) => {
     const aLocal = !!a.isLocal;
     const bLocal = !!b.isLocal;
     if (aLocal && !bLocal) return -1;
@@ -86,28 +86,26 @@ const MainPage = () => {
 
     const aVal = a[sortBy].toLowerCase();
     const bVal = b[sortBy].toLowerCase();
-    const res = aVal.localeCompare(bVal);
-    return sortOrder === "asc" ? res : -res;
+    return sortOrder === "asc" ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
   });
 
-  const totalPages = Math.ceil(filteredAndSortedUsers.length / usersPerPage) || 1;
+  const totalPages = Math.ceil(sortedUsers.length / usersPerPage) || 1;
   const startIndex = (currentPage - 1) * usersPerPage;
   const endIndex = startIndex + usersPerPage;
-  const pagedUsers = filteredAndSortedUsers.slice(startIndex, endIndex);
-  const pageNumbers = Array.from({ length: totalPages }, (_, i) => i + 1);
+  const pagedUsers = sortedUsers.slice(startIndex, endIndex);
 
   useEffect(() => {
     setCurrentPage(1);
   }, [searchText, sortBy, sortOrder]);
 
-  const onAddUser = (event: React.FormEvent) => {
-    event.preventDefault();
+  const onAddUser = (e: React.FormEvent) => {
+    e.preventDefault();
     const n = name.trim();
-    const e = email.trim();
-    if (!n || !e) return toast.error("Name and email are required");
-    if (!/\S+@\S+\.\S+/.test(e)) return toast.error("Please enter a valid email");
+    const eMail = email.trim();
+    if (!n || !eMail) return toast.error("Name and email are required");
+    if (!/\S+@\S+\.\S+/.test(eMail)) return toast.error("Enter a valid email");
 
-    addUserAtTop({ name: n, email: e, company: { name: "Not set!" } });
+    addUserAtTop({ name: n, email: eMail, company: { name: "Not set!" } });
     setName("");
     setEmail("");
     toast.success("User added!");
@@ -123,8 +121,9 @@ const MainPage = () => {
   }
 
   return (
-    <div className="min-h-screen w-full flex flex-col items-center justify-start bg-gray-50 p-6">
-      <h1 className="text-4xl font-bold mb-6 p-4">User Management App</h1>
+    <div className="min-h-screen w-full flex flex-col items-center bg-gray-50 p-6">
+      <h1 className="text-4xl font-bold mb-6">User Management App</h1>
+
       <div className="w-full max-w-5xl mb-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
         <div className="sm:col-span-1">
           <Input
@@ -153,27 +152,31 @@ const MainPage = () => {
           </select>
         </div>
       </div>
-      <form onSubmit={onAddUser} className="w-full max-w-5xl mb-6 grid grid-cols-1 sm:grid-cols-4 gap-3">
-        <Input
-          placeholder="Name" value={name} onChange={(e) => setName(e.target.value)}
-        />
-        <Input
-          placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)}
-        />
+
+      <form
+        onSubmit={onAddUser}
+        className="w-full max-w-5xl mb-6 grid grid-cols-1 sm:grid-cols-4 gap-3"
+      >
+        <Input placeholder="Name" value={name} onChange={(e) => setName(e.target.value)} />
+        <Input placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
         <div className="sm:col-span-1">
-          <Button type="submit" className="w-full">Add User</Button>
+          <Button type="submit" className="w-full">
+            Add User
+          </Button>
         </div>
       </form>
+
       {!loading && users.length === 0 && (
         <div className="text-sm text-muted-foreground">No users to show.</div>
       )}
-      {!loading && users.length > 0 && filteredAndSortedUsers.length === 0 && (
+      {!loading && users.length > 0 && sortedUsers.length === 0 && (
         <div className="text-sm text-muted-foreground">No users match your search.</div>
       )}
+
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-5xl">
-        {pagedUsers.map(function renderUserCard(currentUser) {
-          return <CardElement key={currentUser.id} user={currentUser} />;
-        })}
+        {pagedUsers.map((user) => (
+          <CardElement key={user.id} user={user} />
+        ))}
       </div>
 
       {totalPages > 1 && (
@@ -182,18 +185,16 @@ const MainPage = () => {
             <PaginationPrevious
               onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
             />
-            {pageNumbers.map(function renderPageLink(pageNumber) {
-              return (
-                <PaginationItem key={pageNumber}>
-                  <PaginationLink
-                    isActive={pageNumber === currentPage}
-                    onClick={() => setCurrentPage(pageNumber)}
-                  >
-                    {pageNumber}
-                  </PaginationLink>
-                </PaginationItem>
-              );
-            })}
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+              <PaginationItem key={page}>
+                <PaginationLink
+                  isActive={page === currentPage}
+                  onClick={() => setCurrentPage(page)}
+                >
+                  {page}
+                </PaginationLink>
+              </PaginationItem>
+            ))}
             <PaginationNext
               onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
             />
