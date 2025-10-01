@@ -7,12 +7,13 @@ A simple user management SPA built with React 19, Vite 7, and TypeScript. It fet
 
 ## Features
 
-- **User list with server data**
+- **User list with server data & local storage**
   - Fetches from `https://jsonplaceholder.typicode.com/users`.
+  - Users are saved in **local storage** to persist across sessions.
+  - Local users are prioritized in sort and shown first.
 - **Local CRUD**
   - Add a user at the top of the list (validated email).
   - Update and delete users via modal dialogs.
-  - Local users are prioritized in sort and shown first.
 - **Search & sort**
   - Search by name/email.
   - Sort by name or email (asc/desc).
@@ -22,10 +23,11 @@ A simple user management SPA built with React 19, Vite 7, and TypeScript. It fet
   - `/` main list.
   - `/:id` detail page with extended info.
 - **State management**
-  - Zustand store for `users`,
+  - Zustand store for `users`.
 - **Styling + UI**
   - Tailwind CSS v4 and shadcn UI components (`button`, `card`, `dialog`, etc.).
   - Toasts via Sonner, spinner while loading.
+
 
 
 ## Tech Stack
