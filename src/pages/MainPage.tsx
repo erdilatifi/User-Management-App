@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { useUsersStore, User } from "@/lib/usersStore";
+import { useUsersStore } from "@/lib/usersStore";
 import CardElement from "@/components/pageComponents/CardElement";
 import Spinner from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
