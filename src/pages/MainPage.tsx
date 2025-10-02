@@ -18,13 +18,13 @@ type SortBy = "name" | "email";
 type SortOrder = "asc" | "desc";
 
 const MainPage = () => {
-  const { users, setUsers, addUserAtTop } = useUsersStore();
+  const { users, setUsers, addUser } = useUsersStore();
   const [loading, setLoading] = useState(false);
 
-  const [searchText, setSearchText] = useState("");
+  const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState<SortBy>("name");
   const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
-  const [hasCustomSort, setHasCustomSort] = useState(false);
+  const [didChooseSort, setDidChooseSort] = useState(false);
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -32,7 +32,7 @@ const MainPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const usersPerPage = 6;
 
-  const loadUsersFromApi = async () => {
+  const loadUsers = async () => {
     setLoading(true);
     try {
       const res = await fetch("https://jsonplaceholder.typicode.com/users");
@@ -58,24 +58,22 @@ const MainPage = () => {
       const persisted = raw ? JSON.parse(raw) : null;
       const persistedUsers: User[] = persisted?.state?.users ?? [];
       const hasUsers = useUsersStore.getState().users.length > 0 || persistedUsers.length > 0;
-      if (!hasUsers) void loadUsersFromApi();
+      if (!hasUsers) void loadUsers();
     } catch {
-      if (useUsersStore.getState().users.length === 0) void loadUsersFromApi();
+      if (useUsersStore.getState().users.length === 0) void loadUsers();
     }
   }, []);
 
-  const query = searchText.trim().toLowerCase();
+  const query = search.trim().toLowerCase();
   let filteredUsers = users;
   if (query) {
-    filteredUsers = users.filter(
-      (user) =>
-        user.name.toLowerCase().includes(query) ||
-        user.email.toLowerCase().includes(query)
+    filteredUsers = users.filter((user) =>
+      user.name.toLowerCase().includes(query) || user.email.toLowerCase().includes(query)
     );
   }
 
   const sortedUsers = [...filteredUsers].sort((a, b) => {
-    if (!hasCustomSort) {
+    if (!didChooseSort) {
       const aLocal = !!a.isLocal;
       const bLocal = !!b.isLocal;
       if (aLocal && !bLocal) return -1;
@@ -83,7 +81,7 @@ const MainPage = () => {
       if (aLocal && bLocal) {
         const aTime = a.createdAt ?? 0;
         const bTime = b.createdAt ?? 0;
-        return bTime - aTime; 
+        return bTime - aTime;
       }
     }
 
@@ -99,16 +97,16 @@ const MainPage = () => {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchText, sortBy, sortOrder]);
+  }, [search, sortBy, sortOrder]);
 
-  const onAddUser = (e: React.FormEvent) => {
+  const handleAdd = (e: React.FormEvent) => {
     e.preventDefault();
     const n = name.trim();
     const eMail = email.trim();
     if (!n || !eMail) return toast.error("Name and email are required");
     if (!/\S+@\S+\.\S+/.test(eMail)) return toast.error("Enter a valid email");
 
-    addUserAtTop({ name: n, email: eMail, company: { name: "Not set!" } });
+    addUser({ name: n, email: eMail, company: { name: "Not set!" } });
     setName("");
     setEmail("");
     toast.success("User added!");
@@ -131,8 +129,8 @@ const MainPage = () => {
         <div className="sm:col-span-1">
           <Input
             placeholder="Search by name or email"
-            value={searchText}
-            onChange={(e) => setSearchText(e.target.value)}
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
           />
         </div>
         <div className="flex gap-2 items-center sm:col-span-2">
@@ -141,7 +139,7 @@ const MainPage = () => {
             className="border rounded px-2 py-1"
             value={sortBy}
             onChange={(e) => {
-              setHasCustomSort(true);
+              setDidChooseSort(true);
               setSortBy(e.target.value as SortBy);
             }}
           >
@@ -152,7 +150,7 @@ const MainPage = () => {
             className="border rounded px-2 py-1"
             value={sortOrder}
             onChange={(e) => {
-              setHasCustomSort(true);
+              setDidChooseSort(true);
               setSortOrder(e.target.value as SortOrder);
             }}
           >
@@ -163,7 +161,7 @@ const MainPage = () => {
       </div>
 
       <form
-        onSubmit={onAddUser}
+        onSubmit={handleAdd}
         className="w-full max-w-5xl mb-6 grid grid-cols-1 sm:grid-cols-4 gap-3"
       >
         <Input placeholder="Name" value={name} onChange={(e) => setName(e.target.value)} />

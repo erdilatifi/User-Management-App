@@ -17,7 +17,7 @@ export interface User {
 interface UsersState {
   users: User[];
   setUsers: (list: User[]) => void;
-  addUserAtTop: (user: Omit<User, "id"> & { id?: number }) => void;
+  addUser: (user: Omit<User, "id"> & { id?: number }) => void;
   updateUser: (id: number, patch: Partial<Omit<User, "id">>) => void;
   deleteUser: (id: number) => void;
 }
@@ -27,7 +27,7 @@ export const useUsersStore = create<UsersState>()(
     (set) => ({
       users: [],
       setUsers: (list) => set({ users: list }),
-      addUserAtTop: (user) =>
+      addUser: (user) =>
         set((state) => {
           const newId = user.id ?? Date.now();
           const newUser: User = {

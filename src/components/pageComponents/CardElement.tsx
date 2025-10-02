@@ -20,24 +20,24 @@ interface CardElementProps {
 
 const CardElement = ({ user }: CardElementProps) => {
   const { updateUser, deleteUser } = useUsersStore();
-  const [isUpdateOpen, setIsUpdateOpen] = useState(false);
+  const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [editName, setEditName] = useState(user.name);
   const [editEmail, setEditEmail] = useState(user.email);
 
-  const openUpdate = () => {
+  const openEdit = () => {
     setEditName(user.name);
     setEditEmail(user.email);
-    setIsUpdateOpen(true);
+    setIsEditOpen(true);
   };
 
-  const confirmUpdate = () => {
+  const saveEdit = () => {
     const n = editName.trim();
     const e = editEmail.trim();
     if (!n || !e) return toast.error("Name and email are required");
     if (!/\S+@\S+\.\S+/.test(e)) return toast.error("Please enter a valid email");
     updateUser(user.id, { name: n, email: e });
-    setIsUpdateOpen(false);
+    setIsEditOpen(false);
     toast.success("User updated");
   };
 
@@ -62,7 +62,7 @@ const CardElement = ({ user }: CardElementProps) => {
           <p className="text-sm font-medium">{user.company.name}</p>
         </CardContent>
         <CardFooter className="flex gap-2 mt-2">
-          <Button size="sm" className="flex-1" onClick={openUpdate}>
+          <Button size="sm" className="flex-1" onClick={openEdit}>
             Update
           </Button>
           <Button variant="outline" size="sm" className="flex-1" onClick={openDelete}>
@@ -74,18 +74,18 @@ const CardElement = ({ user }: CardElementProps) => {
         </CardFooter>
       </Card>
 
-      <Dialog open={isUpdateOpen} onOpenChange={setIsUpdateOpen}>
+      <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Update user</DialogTitle>
+            <DialogTitle>Edit user</DialogTitle>
           </DialogHeader>
           <div className="grid gap-3">
             <Input placeholder="Name" value={editName} onChange={(e) => setEditName(e.target.value)} />
             <Input placeholder="Email" value={editEmail} onChange={(e) => setEditEmail(e.target.value)} />
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsUpdateOpen(false)}>Cancel</Button>
-            <Button onClick={confirmUpdate}>Save</Button>
+            <Button variant="outline" onClick={() => setIsEditOpen(false)}>Cancel</Button>
+            <Button onClick={saveEdit}>Save</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

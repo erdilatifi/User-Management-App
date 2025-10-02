@@ -28,12 +28,12 @@ interface User {
 const DetailPage = () => {
   const { id } = useParams<{ id: string }>();
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    const fetchUser = async () => {
+    const loadUser = async () => {
       if (!id) return;
-      setLoading(true);
+      setIsLoading(true);
       try {
         const res = await fetch(`https://jsonplaceholder.typicode.com/users/${id}`);
         if (!res.ok) throw new Error("Failed to fetch user");
@@ -42,14 +42,14 @@ const DetailPage = () => {
       } catch (error) {
         console.error(error);
       } finally {
-        setLoading(false);
+        setIsLoading(false);
       }
     };
 
-    fetchUser();
+    loadUser();
   }, [id]);
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Spinner />
