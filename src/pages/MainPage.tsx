@@ -24,6 +24,7 @@ const MainPage = () => {
   const [searchText, setSearchText] = useState("");
   const [sortBy, setSortBy] = useState<SortBy>("name");
   const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
+  const [hasCustomSort, setHasCustomSort] = useState(false);
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -67,21 +68,23 @@ const MainPage = () => {
   let filteredUsers = users;
   if (query) {
     filteredUsers = users.filter(
-      (u) =>
-        u.name.toLowerCase().includes(query) ||
-        u.email.toLowerCase().includes(query)
+      (user) =>
+        user.name.toLowerCase().includes(query) ||
+        user.email.toLowerCase().includes(query)
     );
   }
 
   const sortedUsers = [...filteredUsers].sort((a, b) => {
-    const aLocal = !!a.isLocal;
-    const bLocal = !!b.isLocal;
-    if (aLocal && !bLocal) return -1;
-    if (!aLocal && bLocal) return 1;
-    if (aLocal && bLocal) {
-      const aTime = a.createdAt ?? 0;
-      const bTime = b.createdAt ?? 0;
-      return bTime - aTime;
+    if (!hasCustomSort) {
+      const aLocal = !!a.isLocal;
+      const bLocal = !!b.isLocal;
+      if (aLocal && !bLocal) return -1;
+      if (!aLocal && bLocal) return 1;
+      if (aLocal && bLocal) {
+        const aTime = a.createdAt ?? 0;
+        const bTime = b.createdAt ?? 0;
+        return bTime - aTime; 
+      }
     }
 
     const aVal = a[sortBy].toLowerCase();
@@ -137,7 +140,10 @@ const MainPage = () => {
           <select
             className="border rounded px-2 py-1"
             value={sortBy}
-            onChange={(e) => setSortBy(e.target.value as SortBy)}
+            onChange={(e) => {
+              setHasCustomSort(true);
+              setSortBy(e.target.value as SortBy);
+            }}
           >
             <option value="name">Name</option>
             <option value="email">Email</option>
@@ -145,7 +151,10 @@ const MainPage = () => {
           <select
             className="border rounded px-2 py-1"
             value={sortOrder}
-            onChange={(e) => setSortOrder(e.target.value as SortOrder)}
+            onChange={(e) => {
+              setHasCustomSort(true);
+              setSortOrder(e.target.value as SortOrder);
+            }}
           >
             <option value="asc">Asc</option>
             <option value="desc">Desc</option>
